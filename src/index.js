@@ -1,38 +1,56 @@
+function todoController() {
+    //factory function of a note
+    const TodoNoteFun = function(title = "title", description, dueDate, priority) {
+        //other functions of notes can go here
+        const addDetail = (key, content) =>{
+            this.key = content;
+        }
 
+        const getDetail = (param) => {
+            return {param};
+        }
 
-//factory function of a note
-const TodoNote = function(title) {
-    const description = "";
-    const dueDate = "";
-    const priority = "";
-    
-    return {title, description, dueDate, priority};
-}
+        const assignProject = (project) => {
+            if (!project || !project.attachTodo) {
+                const project = projectModule.project(`${project}`);
+            }
+            project.attachTodo(this);
+        }
 
-//factory function of a project
-function project(projName) {
-    const todos = [];
-    const getTodos = () => todos;
-    const attachTodo = (todoCard) => {
-        todos.push(todoCard);
+        return {title, description, dueDate, priority, addDetail, getDetail, assignProject};
+    };
+
+    return {TodoNoteFun};
+};
+
+function projectController() {
+    //factory function of a project
+    function projectFun(projName = "project name") {
+        const todos = [];
+        const getTodos = () => todos;
+        const attachTodo = (todoCard) => {
+            todos.push(todoCard);
+        }
+        return {projName, getTodos, attachTodo};
     }
-    return {projName, getTodos, attachTodo};
-}
 
-function createProject(projName) {
-    return project(projName);
+    return {projectFun};
 };
 
 
+//controller module to manage the screen
 function ScreenController() {
-    const defaultNote = TodoNote("default note");
-    const defaultProject = project("default project");
+    const todoNote = todoController().TodoNoteFun("default title", "default description", "2024-01-01", "Low");
+    const project = projectController().projectFun("Default Project");
+    
+    project.attachTodo(todoNote);
 
-    defaultProject.attachTodo(defaultNote);
-
-    const div1 = document.querySelector('.div1');
-    div1.textContent = `Project Name: ${defaultProject.projName};
-    Todos: ${defaultProject.getTodos().map(todo => todo.title).join(', ')}`;
+    // console.log(project);
+    console.log(todoNote);
+    console.log(project.projName);
+    console.log(project);
 }
 
-ScreenController();
+const app1 = ScreenController();
+const app2 = projectController();
+const app3 = todoController();
