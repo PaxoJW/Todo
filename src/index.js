@@ -1,9 +1,10 @@
 function todoController() {
     //factory function of a note
     const todoNoteFun = function(title = "title", description, dueDate, priority) {
-        //other functions of notes can go here
+        
         const todoCard = {title, description, dueDate, priority};
         
+        //other functions of notes can go here
         const addDetail = (key, content) => {
             if (!todoCard[key]) {
                 console.log(`Key: ${key} does not exist on todoCard`);
@@ -25,7 +26,7 @@ function todoController() {
             if (!project || !project.attachTodo) {
                 const project = projectModule.project(`${project}`);
             }
-            project.attachTodo(todo);
+            project.attachTodo(todo); //Defined below
         }
 
         const todo = {
@@ -70,8 +71,10 @@ function ScreenController() {
     console.log("Todos inside default project:", defaultProject.getTodos());
     console.log("Default Todo Details:", defaultTodo);
 
+    //Let's return both controllers so we can use them outside
     return { todoNoteFun, projectFun };
 
 }
 
+//Only one app controller is needed
 const app1 = ScreenController();
