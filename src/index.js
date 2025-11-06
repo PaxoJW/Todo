@@ -1,26 +1,44 @@
 function todoController() {
     //factory function of a note
-    const TodoNoteFun = function(title = "title", description, dueDate, priority) {
+    const todoNoteFun = function(title = "title", description, dueDate, priority) {
         //other functions of notes can go here
-        const addDetail = (key, content) =>{
-            this.key = content;
+        const todoCard = {title, description, dueDate, priority};
+        
+        const addDetail = (key, content) => {
+            if (!todoCard[key]) {
+                console.log(`Key: ${key} does not exist on todoCard`);
+                return;
+            }
+
+            todoCard[key] = content;
         }
 
-        const getDetail = (param) => {
-            return {param};
+        const getDetail = (key) => {
+            if (!todoCard[key]) {
+                console.log(`Key: ${key} does not exist on todoCard`);
+                return;
+            }
+            return todoCard[key];
         }
 
         const assignProject = (project) => {
             if (!project || !project.attachTodo) {
                 const project = projectModule.project(`${project}`);
             }
-            project.attachTodo(this);
+            project.attachTodo(todo);
         }
 
-        return {title, description, dueDate, priority, addDetail, getDetail, assignProject};
+        const todo = {
+            todoCard,
+            addDetail,
+            getDetail,
+            assignProject
+        }
+
+        return todo;
     };
 
-    return {TodoNoteFun};
+    return { todoNoteFun };
 };
 
 function projectController() {
@@ -40,17 +58,20 @@ function projectController() {
 
 //controller module to manage the screen
 function ScreenController() {
-    const todoNote = todoController().TodoNoteFun("default title", "default description", "2024-01-01", "Low");
-    const project = projectController().projectFun("Default Project");
+    const todoNoteFun = todoController();
+    const projectFun = projectController();
     
-    project.attachTodo(todoNote);
+    const defaultProject = projectFun.projectFun("Default Project");
+    const defaultTodo = todoNoteFun.todoNoteFun("Default Todo", "Sample description", "2024-01-01", "Low");
 
-    // console.log(project);
-    console.log(todoNote);
-    console.log(project.projName);
-    console.log(project);
+    defaultProject.attachTodo(defaultTodo);
+
+    console.log("Default project name:", defaultProject.projName);
+    console.log("Todos inside default project:", defaultProject.getTodos());
+    console.log("Default Todo Details:", defaultTodo);
+
+    return { todoNoteFun, projectFun };
+
 }
 
 const app1 = ScreenController();
-const app2 = projectController();
-const app3 = todoController();
