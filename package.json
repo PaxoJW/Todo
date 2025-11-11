@@ -19,6 +19,7 @@
   "homepage": "https://github.com/PaxoJW/Todo#readme",
   "devDependencies": {
     "css-loader": "^7.1.2",
+    "date-fns": "^4.1.0",
     "dev-server": "^0.2.0",
     "html-loader": "^5.1.0",
     "html-webpack-plugin": "^5.6.4",
