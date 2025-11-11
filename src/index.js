@@ -78,16 +78,66 @@ function projectController() {
 function ScreenController() {
     const tdNControl = todoController();
     const pjControl = projectController();
-    
+    const pageDiv = document.getElementById("content");
+    const projectsList = []; //List of all projects
+
+    //Create a default project and todo for demonstration
     const defaultProject = pjControl.projectFun("Default Project");
     const defaultTodo = tdNControl.todoNoteFun("Default Todo", "Sample description", "2024-05-23", "Low");
 
     defaultProject.attachTodo(defaultTodo);
+    projectsList.push(defaultProject);
 
-    console.log("Default project name:", defaultProject.project.projName);
-    console.log("Todos inside default project:", defaultProject.getTodos());
-    console.log("Default Todo Details:", defaultTodo);
+    const DOMmanipulation = () => {
+        //Clear the page
+        pageDiv.textContent = "";
 
+        //Display all projects and their todos
+        projectsList.forEach((proj) => {
+            const projHeader = document.createElement("h2");
+            projHeader.textContent = proj.project.projName;
+            pageDiv.appendChild(projHeader);
+        });
+
+        //Add buttons to add projects and todos
+        const addProjBtn = document.createElement("button");
+        addProjBtn.textContent = "Add Project";
+        addProjBtn.addEventListener("click", () => {
+            const projName = prompt("Enter project name:");
+            if (projName) {
+                addProject(projName);
+            }
+        });
+        pageDiv.appendChild(addProjBtn);
+
+        const addTodoBtn = document.createElement("button");
+        addTodoBtn.textContent = "Add Todo";
+        addTodoBtn.addEventListener("click", () => {
+            const title = prompt("Enter todo title:");
+            const description = prompt("Enter todo description:");
+            const dueDate = prompt("Enter due date (dd-mm-yyyy):");
+            const priority = prompt("Enter priority (Low, Medium, High):");
+            if (title) {
+                addTodo(title, description, dueDate, priority);
+            }
+        });
+        pageDiv.appendChild(addTodoBtn);
+    }
+
+    //Functions to add projects and todos
+    function addProject(projName) {
+        const newProject = pjControl.projectFun(projName);
+        projectsList.push(newProject);
+        DOMmanipulation();
+    }
+
+    function addTodo(title, description, dueDate, priority) {
+        const newTodo = tdNControl.todoNoteFun(title, description, dueDate, priority);
+        newTodo.assignProject(defaultProject);
+        DOMmanipulation();
+    }
+
+    DOMmanipulation();
     //Let's return both controllers so we can use them outside
     return { tdNControl, pjControl };
 
@@ -95,4 +145,5 @@ function ScreenController() {
 
 // //Only one app controller is needed
 const app = ScreenController();
-window.app = app; //For debugging purposes  
+
+window.app = app; //For debugging purposes as bundling puts verything in its own scope and won't be accessible from the console otherwise
