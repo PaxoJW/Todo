@@ -29,6 +29,7 @@ function todoController() {
 
         const getDetail = (key) => {
             if (!todoCard[key]) {
+                todoCard[key] = "unassigned";
                 console.log(`Key: ${key} does not exist on todoCard`);
                 return;
             }
@@ -61,8 +62,10 @@ function projectController() {
         const todos = [];
         const project = {projName, todos};
         
+        //Here we get all todos attached to the project, they are the todo const defined above
         const getTodos = () => todos;
-       
+        
+        //Here we attach a todo to the project, it's the todo const defined above not the todoCard inside it
         const attachTodo = (todoCard) => {
             todos.push(todoCard);
         }
@@ -94,9 +97,54 @@ function ScreenController() {
 
         //Display all projects and their todos
         projectsList.forEach((proj) => {
-            const projHeader = document.createElement("h2");
-            projHeader.textContent = proj.project.projName;
-            pageDiv.appendChild(projHeader);
+            
+            const projDiv = document.createElement("div");
+            const projTitle = document.createElement("h2");
+            const projContent = document.createElement("div");
+
+            projDiv.setAttribute("id", crypto.randomUUID()); //Unique ID for each project div
+            projTitle.textContent = proj.project.projName;
+            projDiv.appendChild(projTitle);
+            projContent.setAttribute("class", "todo-card");
+
+            projContent.textContent = "Todos:\n";
+            
+            proj.getTodos().forEach((todo) => {
+                const todoDiv = document.createElement("div");
+                const todoTitle = document.createElement("h3");
+                const todoDesc = document.createElement("p");
+                const todoDue = document.createElement("p");
+                const todoPriority = document.createElement("p");
+
+                todoTitle.textContent = todo.getDetail("title");
+                todoDesc.textContent = `Description: ${todo.getDetail("description")}`;
+                todoDue.textContent = `Due Date: ${todo.getDetail("dueDate")}`;
+                todoPriority.textContent = `Priority: ${todo.getDetail("priority")}`;
+
+                todoDiv.appendChild(todoTitle);
+                todoDiv.appendChild(todoDesc);
+                todoDiv.appendChild(todoDue);
+                todoDiv.appendChild(todoPriority);
+                projContent.appendChild(todoDiv);
+            });
+            
+            const addTodoBtn = document.createElement("button");
+            addTodoBtn.textContent = "Add Todo";
+            addTodoBtn.addEventListener("click", (e) => {
+                const title = prompt("Enter todo title:");
+                const description = prompt("Enter todo description:");
+                const dueDate = prompt("Enter due date (dd-mm-yyyy):");
+                const priority = prompt("Enter priority (Low, Medium, High):");
+                const projectID = e.currentTarget; //Here we can get the project to assign the todo to
+                console.log(projectID);
+                if (title) {
+                    addTodo(title, description, dueDate, priority, defaultProject); //Assigning to the default project for demo
+                }
+            });
+
+            projContent.appendChild(addTodoBtn);
+            projDiv.appendChild(projContent);
+            pageDiv.appendChild(projDiv);
         });
 
         //Add buttons to add projects and todos
@@ -110,18 +158,8 @@ function ScreenController() {
         });
         pageDiv.appendChild(addProjBtn);
 
-        const addTodoBtn = document.createElement("button");
-        addTodoBtn.textContent = "Add Todo";
-        addTodoBtn.addEventListener("click", () => {
-            const title = prompt("Enter todo title:");
-            const description = prompt("Enter todo description:");
-            const dueDate = prompt("Enter due date (dd-mm-yyyy):");
-            const priority = prompt("Enter priority (Low, Medium, High):");
-            if (title) {
-                addTodo(title, description, dueDate, priority);
-            }
-        });
-        pageDiv.appendChild(addTodoBtn);
+        
+        
     }
 
     //Functions to add projects and todos
@@ -131,9 +169,10 @@ function ScreenController() {
         DOMmanipulation();
     }
 
-    function addTodo(title, description, dueDate, priority) {
+    function addTodo(title, description, dueDate, priority, project) {
         const newTodo = tdNControl.todoNoteFun(title, description, dueDate, priority);
-        newTodo.assignProject(defaultProject);
+        // we assign the todo to the project here
+        newTodo.assignProject(project);
         DOMmanipulation();
     }
 
