@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { add, format } from 'date-fns';
 
 format(new Date(1, 11, 2014), "dd-MM-yyyy"); //=> "1-11-2014"
 
@@ -60,7 +60,8 @@ function projectController() {
     //factory function of a project
     function projectFun(projName = "project name") {
         const todos = [];
-        const project = {projName, todos};
+        const projectID = crypto.randomUUID();
+        const project = {projName, todos, id: projectID}; //we assign a unique id to each project
         
         //Here we get all todos attached to the project, they are the todo const defined above
         const getTodos = () => todos;
@@ -102,43 +103,50 @@ function ScreenController() {
             const projTitle = document.createElement("h2");
             const projContent = document.createElement("div");
 
-            projDiv.setAttribute("id", crypto.randomUUID()); //Unique ID for each project div
+            projDiv.dataset.projectID = proj.project.id; //The unique ID for each project is set to the relative div
+            projDiv.setAttribute("class", "project-card");
             projTitle.textContent = proj.project.projName;
             projDiv.appendChild(projTitle);
-            projContent.setAttribute("class", "todo-card");
+            projContent.setAttribute("class", "project-content");
 
             projContent.textContent = "Todos:\n";
             
             proj.getTodos().forEach((todo) => {
                 const todoDiv = document.createElement("div");
-                const todoTitle = document.createElement("h3");
-                const todoDesc = document.createElement("p");
-                const todoDue = document.createElement("p");
-                const todoPriority = document.createElement("p");
+                todoDiv.setAttribute("class", "todo-card");
+            
+                //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
+                const todoHTML = Object.keys(todo.todoCard)
+                    .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
+                    .map(key => `<li>${key}: ${todo.getDetail(key)}<li>`)
+                    .join(""); //convert the array to a string
 
-                todoTitle.textContent = todo.getDetail("title");
-                todoDesc.textContent = `Description: ${todo.getDetail("description")}`;
-                todoDue.textContent = `Due Date: ${todo.getDetail("dueDate")}`;
-                todoPriority.textContent = `Priority: ${todo.getDetail("priority")}`;
+                    console.log(todoHTML);
+                    
+                todoDiv.innerHTML = `<h3>${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
 
-                todoDiv.appendChild(todoTitle);
-                todoDiv.appendChild(todoDesc);
-                todoDiv.appendChild(todoDue);
-                todoDiv.appendChild(todoPriority);
                 projContent.appendChild(todoDiv);
             });
             
             const addTodoBtn = document.createElement("button");
             addTodoBtn.textContent = "Add Todo";
+            addTodoBtn.classList.add("add-todo-btn");
             addTodoBtn.addEventListener("click", (e) => {
                 const title = prompt("Enter todo title:");
                 const description = prompt("Enter todo description:");
                 const dueDate = prompt("Enter due date (dd-mm-yyyy):");
                 const priority = prompt("Enter priority (Low, Medium, High):");
-                const projectID = e.currentTarget; //Here we can get the project to assign the todo to
-                console.log(projectID);
+                
+                //Here we can get the unique ID of the project to assign the todo to
+                //First we get the closest project div in the ierarchy to the button clicked
+                const projectCard = e.target.closest(".project-card"); 
+                const projectID = projectCard.dataset.projectID; //we get the project id from the div
+                const targetProject = projectsList.find(p => p.project.id === projectID); //we look for the correspoding project in the list
+                if (!targetProject) {
+                    return;
+                }
                 if (title) {
-                    addTodo(title, description, dueDate, priority, defaultProject); //Assigning to the default project for demo
+                    addTodo(title, description, dueDate, priority, targetProject); //Assigning to the target project
                 }
             });
 
@@ -147,9 +155,10 @@ function ScreenController() {
             pageDiv.appendChild(projDiv);
         });
 
-        //Add buttons to add projects and todos
+        //Add buttons to add projects
         const addProjBtn = document.createElement("button");
         addProjBtn.textContent = "Add Project";
+        addProjBtn.classList.add("add-project-btn");
         addProjBtn.addEventListener("click", () => {
             const projName = prompt("Enter project name:");
             if (projName) {
