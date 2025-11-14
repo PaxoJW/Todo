@@ -113,7 +113,6 @@ function ScreenController() {
             projDiv.appendChild(projTitle);
             projContent.setAttribute("class", "project-content");
 
-            projContent.textContent = "Todos:\n";
             
             //Display todos of the project
             proj.getTodos().forEach((todo) => {
@@ -125,10 +124,8 @@ function ScreenController() {
                     .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
                     .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
                     .join(""); //convert the array to a string
-
-                    console.log(todoHTML);
                     
-                todoDiv.innerHTML = `<h3>${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
+                todoDiv.innerHTML = `<h3 class = "todo-title">${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
 
                 projContent.appendChild(todoDiv);
             });
@@ -172,9 +169,6 @@ function ScreenController() {
             }
         });
         pageDiv.appendChild(addProjBtn);
-
-        
-        
     }
 
     //Functions to add projects and todos
@@ -192,7 +186,6 @@ function ScreenController() {
     }
 
     DOMmanipulation();
-    return { projectFun, todoNoteFun };
 }
 
 // //Only one app controller is needed
