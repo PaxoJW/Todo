@@ -1,93 +1,96 @@
-import { add, format } from 'date-fns';
+import './style.css';
+import { format } from 'date-fns';
+
 
 format(new Date(1, 11, 2014), "dd-MM-yyyy"); //=> "1-11-2014"
 
 
-function todoController() {
-    //factory function of a note
-    const todoNoteFun = function(title = "title", description, dueDate, priority) {
-        
-        //date manipulation can be done here
-        if (dueDate) {
-            const parsedDate = new Date(dueDate);
-            dueDate = format(parsedDate, "dd-MM-yyyy");
-        } else {
-            dueDate = "No due date";
-        }
 
-        const todoCard = {title, description, dueDate, priority};
-        
-        //other functions of notes can go here
-        const addDetail = (key, content) => {
-            if (!todoCard[key]) {
-                console.log(`Key: ${key} does not exist on todoCard`);
-                return;
-            }
-
-            todoCard[key] = content;
-        }
-
-        const getDetail = (key) => {
-            if (!todoCard[key]) {
-                todoCard[key] = "unassigned";
-                console.log(`Key: ${key} does not exist on todoCard`);
-                return;
-            }
-            return todoCard[key];
-        }
-
-        const assignProject = (project) => {
-            // if (!project || !project.attachTodo) {
-            //     const project = projectModule.project(`${project}`);
-            // }
-            project.attachTodo(todo); //Defined below
-        }
-
-        const todo = {
-            todoCard,
-            addDetail,
-            getDetail,
-            assignProject
-        }
-
-        return todo;
-    };
-
-    return { todoNoteFun };
-};
-
-function projectController() {
-    //factory function of a project
-    function projectFun(projName = "project name") {
-        const todos = [];
-        const projectID = crypto.randomUUID();
-        const project = {projName, todos, id: projectID}; //we assign a unique id to each project
-        
-        //Here we get all todos attached to the project, they are the todo const defined above
-        const getTodos = () => todos;
-        
-        //Here we attach a todo to the project, it's the todo const defined above not the todoCard inside it
-        const attachTodo = (todoCard) => {
-            todos.push(todoCard);
-        }
-        
-        return {project, getTodos, attachTodo};
+//factory function of a note
+const todoNoteFun = function(title = "title", description, dueDate, priority) {
+    
+    //date manipulation can be done here
+    if (dueDate) {
+        const parsedDate = new Date(dueDate);
+        dueDate = format(parsedDate, "dd-MM-yyyy");
+    } else {
+        dueDate = "No due date";
     }
 
-    return {projectFun};
+    const todoCard = {title, description, dueDate, priority};
+    
+    //Assign empty value to undefined values
+    Object.keys(todoCard)
+    .filter(key => !todoCard[key])
+    .map(key => {
+        todoCard[key] = "Empty";
+    });
+
+    //other functions of notes can go here
+    const addDetail = (key, content) => {
+        if (!todoCard[key]) {
+            alert(`Key: ${key} does not exist on todoCard`);
+            return;
+        }
+
+        todoCard[key] = content;
+    }
+
+    const getDetail = (key) => {
+        if (!todoCard[key]) {
+            todoCard[key] = "unassigned";
+            alert(`Key: ${key} does not exist on todoCard`);
+            return;
+        }
+        return todoCard[key];
+    }
+
+    const assignProject = (project) => {
+        // if (!project || !project.attachTodo) {
+        //     const project = projectModule.project(`${project}`);
+        // }
+        project.attachTodo(todo); //Defined below
+    }
+
+    const todo = {
+        todoCard,
+        addDetail,
+        getDetail,
+        assignProject
+    }
+
+    return todo;
 };
+
+
+
+//factory function of a project
+function projectFun(projName = "project name") {
+    const todos = [];
+    const projectID = crypto.randomUUID();
+    const project = {projName, todos, id: projectID}; //we assign a unique id to each project
+    
+    //Here we get all todos attached to the project, they are the todo const defined above
+    const getTodos = () => todos;
+    
+    //Here we attach a todo to the project, it's the todo const defined above not the todoCard inside it
+    const attachTodo = (todoCard) => {
+        todos.push(todoCard);
+    }
+    
+    return {project, getTodos, attachTodo};
+}
+
 
 
 //controller module to manage the screen
 function ScreenController() {
-    const tdNControl = todoController();
-    const pjControl = projectController();
     const pageDiv = document.getElementById("content");
     const projectsList = []; //List of all projects
 
     //Create a default project and todo for demonstration
-    const defaultProject = pjControl.projectFun("Default Project");
-    const defaultTodo = tdNControl.todoNoteFun("Default Todo", "Sample description", "2024-05-23", "Low");
+    const defaultProject = projectFun("Default Project");
+    const defaultTodo = todoNoteFun("Default Todo", "Sample description", "2024-05-23", "Low");
 
     defaultProject.attachTodo(defaultTodo);
     projectsList.push(defaultProject);
@@ -105,12 +108,14 @@ function ScreenController() {
 
             projDiv.dataset.projectID = proj.project.id; //The unique ID for each project is set to the relative div
             projDiv.setAttribute("class", "project-card");
+            projTitle.setAttribute("class", "project-title");
             projTitle.textContent = proj.project.projName;
             projDiv.appendChild(projTitle);
             projContent.setAttribute("class", "project-content");
 
             projContent.textContent = "Todos:\n";
             
+            //Display todos of the project
             proj.getTodos().forEach((todo) => {
                 const todoDiv = document.createElement("div");
                 todoDiv.setAttribute("class", "todo-card");
@@ -118,7 +123,7 @@ function ScreenController() {
                 //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
                 const todoHTML = Object.keys(todo.todoCard)
                     .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
-                    .map(key => `<li>${key}: ${todo.getDetail(key)}<li>`)
+                    .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
                     .join(""); //convert the array to a string
 
                     console.log(todoHTML);
@@ -128,6 +133,7 @@ function ScreenController() {
                 projContent.appendChild(todoDiv);
             });
             
+            // Add todos logic
             const addTodoBtn = document.createElement("button");
             addTodoBtn.textContent = "Add Todo";
             addTodoBtn.classList.add("add-todo-btn");
@@ -173,22 +179,20 @@ function ScreenController() {
 
     //Functions to add projects and todos
     function addProject(projName) {
-        const newProject = pjControl.projectFun(projName);
+        const newProject = projectFun(projName);
         projectsList.push(newProject);
         DOMmanipulation();
     }
 
     function addTodo(title, description, dueDate, priority, project) {
-        const newTodo = tdNControl.todoNoteFun(title, description, dueDate, priority);
+        const newTodo = todoNoteFun(title, description, dueDate, priority);
         // we assign the todo to the project here
         newTodo.assignProject(project);
         DOMmanipulation();
     }
 
     DOMmanipulation();
-    //Let's return both controllers so we can use them outside
-    return { tdNControl, pjControl };
-
+    return { projectFun, todoNoteFun };
 }
 
 // //Only one app controller is needed
