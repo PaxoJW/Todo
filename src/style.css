@@ -26,6 +26,7 @@ ul {
     border: 1px solid rgb(173, 169, 169);
     border-radius: 10%;
     padding: 10px;
+    margin-bottom: 10px;
 }
 
 .project-title {

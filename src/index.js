@@ -81,7 +81,32 @@ function projectFun(projName = "project name") {
     return {project, getTodos, attachTodo};
 }
 
+function renderTodoDiv(todo, todoDiv) {
+    //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
+    const todoHTML = Object.keys(todo.todoCard)
+        .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
+        .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
+        .join(""); //convert the array to a string
+        
+    todoDiv.innerHTML = `<h3 class = "todo-title">${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
+}
 
+function renderTodoForm(todo, todoFormDialog) {
+    const todoForm = Object.keys(todo.todoCard).map(key => {
+        return `
+            <label for="${key}">${key}:</label>
+            <input type="text" id="${key}" name="${key}" value="${todo.getDetail(key)}"><br>`;
+    }).join("");
+    
+    todoFormDialog.innerHTML = `<form>
+        <h3>Edit Todo:</h3>
+        ${todoForm}
+        <menu>
+            <button type="button" id="cancel-btn">Cancel</button>
+            <button type = "submit">Confirm</button>
+        </menu>
+    </form>`;
+}
 
 //controller module to manage the screen
 function ScreenController() {
@@ -113,19 +138,57 @@ function ScreenController() {
             projDiv.appendChild(projTitle);
             projContent.setAttribute("class", "project-content");
 
-            
             //Display todos of the project
             proj.getTodos().forEach((todo) => {
                 const todoDiv = document.createElement("div");
                 todoDiv.setAttribute("class", "todo-card");
-            
-                //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
-                const todoHTML = Object.keys(todo.todoCard)
-                    .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
-                    .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
-                    .join(""); //convert the array to a string
+                const todoFormDialog = document.createElement("dialog");
+                todoFormDialog.setAttribute("closedby", "any");
+
+                document.body.appendChild(todoFormDialog); //Dialogs need to be in the body
+
+                //Initial rendering of todo details
+                renderTodoDiv(todo, todoDiv);
+
+                //Rendering of todo form inside dialog
+                renderTodoForm(todo, todoFormDialog);
+
+                //Event listener to open dialog on click
+                todoDiv.addEventListener("click", () => {
+                    //FInd opened dialogs and close them
+                    const openedDialogs = document.querySelectorAll('dialog[open]');
+                    openedDialogs.forEach(d => d.close());
                     
-                todoDiv.innerHTML = `<h3 class = "todo-title">${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
+                    todoFormDialog.show();
+                });
+                
+                //Cancel button logic
+                todoFormDialog.querySelector("#cancel-btn").addEventListener("click", () => {
+                    const modifiedformData = new FormData(todoFormDialog.querySelector("form"));
+                    //Populate form with current todo details
+                    for (let [key, value] of modifiedformData.entries()) {
+                        value = todo.getDetail(key);
+                        todoFormDialog.querySelector(`input[name="${key}"]`).value = value;
+                    }
+                    
+                    todoFormDialog.close();
+                });
+
+                //Form submission logic
+                const form = todoFormDialog.querySelector("form");
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+
+                    for (const [key, value] of formData.entries()) {
+                        todo.addDetail(key, value);
+                    }
+
+                    //Re-render the todo details
+                    renderTodoDiv(todo, todoDiv);
+
+                    todoFormDialog.close();
+                });
 
                 projContent.appendChild(todoDiv);
             });
