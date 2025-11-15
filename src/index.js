@@ -45,6 +45,10 @@ const todoNoteFun = function(title = "title", description, dueDate, priority) {
         return todoCard[key];
     }
 
+    const getKeys = () => {
+        return Object.keys(todoCard);
+    }
+
     const assignProject = (project) => {
         // if (!project || !project.attachTodo) {
         //     const project = projectModule.project(`${project}`);
@@ -56,6 +60,7 @@ const todoNoteFun = function(title = "title", description, dueDate, priority) {
         todoCard,
         addDetail,
         getDetail,
+        getKeys,
         assignProject
     }
 
@@ -83,7 +88,7 @@ function projectFun(projName = "project name") {
 
 function renderTodoDiv(todo, todoDiv) {
     //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
-    const todoHTML = Object.keys(todo.todoCard)
+    const todoHTML = todo.getKeys()
         .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
         .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
         .join(""); //convert the array to a string
@@ -92,7 +97,7 @@ function renderTodoDiv(todo, todoDiv) {
 }
 
 function renderTodoForm(todo, todoFormDialog) {
-    const todoForm = Object.keys(todo.todoCard).map(key => {
+    const todoForm = todo.getKeys().map(key => {
         return `
             <label for="${key}">${key}:</label>
             <input type="text" id="${key}" name="${key}" value="${todo.getDetail(key)}"><br>`;
@@ -164,12 +169,9 @@ function ScreenController() {
                 
                 //Cancel button logic
                 todoFormDialog.querySelector("#cancel-btn").addEventListener("click", () => {
-                    const modifiedformData = new FormData(todoFormDialog.querySelector("form"));
-                    //Populate form with current todo details
-                    for (let [key, value] of modifiedformData.entries()) {
-                        value = todo.getDetail(key);
-                        todoFormDialog.querySelector(`input[name="${key}"]`).value = value;
-                    }
+                    todo.getKeys().forEach((key) => {
+                        todoFormDialog.querySelector(`input[name="${key}"]`).value = todo.getDetail(key);
+                    });
                     
                     todoFormDialog.close();
                 });
