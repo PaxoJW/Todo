@@ -128,7 +128,19 @@ function ScreenController() {
     const DOMmanipulation = () => {
         //Clear the page
         pageDiv.textContent = "";
-
+        
+        //Add buttons to add projects
+        const addProjBtn = document.createElement("button");
+        addProjBtn.textContent = "Add Project";
+        addProjBtn.classList.add("add-project-btn");
+        addProjBtn.addEventListener("click", () => {
+            const projName = prompt("Enter project name:");
+            if (projName) {
+                addProject(projName);
+            }
+        });
+        pageDiv.appendChild(addProjBtn);
+        
         //Display all projects and their todos
         projectsList.forEach((proj) => {
             
@@ -215,6 +227,8 @@ function ScreenController() {
                 }
                 if (title) {
                     addTodo(title, description, dueDate, priority, targetProject); //Assigning to the target project
+                } else {
+                    alert("Todo must have a title!");
                 }
             });
 
@@ -222,18 +236,6 @@ function ScreenController() {
             projDiv.appendChild(projContent);
             pageDiv.appendChild(projDiv);
         });
-
-        //Add buttons to add projects
-        const addProjBtn = document.createElement("button");
-        addProjBtn.textContent = "Add Project";
-        addProjBtn.classList.add("add-project-btn");
-        addProjBtn.addEventListener("click", () => {
-            const projName = prompt("Enter project name:");
-            if (projName) {
-                addProject(projName);
-            }
-        });
-        pageDiv.appendChild(addProjBtn);
     }
 
     //Functions to add projects and todos
