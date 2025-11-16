@@ -212,29 +212,19 @@ function ScreenController() {
 
 
 
-                const deleteBtn = document.createElement("button");
-                deleteBtn.textContent = "Delete todo";
-                deleteBtn.classList.add("delete-todo-btn");
+                const deleteTodoBtn = document.createElement("button");
+                deleteTodoBtn.textContent = "Delete todo";
+                deleteTodoBtn.classList.add("delete-todo-btn");
 
-                deleteBtn.addEventListener("click", (e) => {
-                    console.log("Delete button clicked");
-                    // e.stopPropagation(); //To prevent the dialog from opening
-                    const projectCard = e.target.closest(".project-card");
-                    const projectID = projectCard.dataset.projectID;
-                    const targetProject = projectsList.find(p => p.project.id === projectID);
-                    console.log(projectCard, projectID, targetProject, projectsList);
-                    if (!targetProject) {
-                        return;
-                    }
-                    const todoIndex = targetProject.getTodos().indexOf(todo);
-                    
+                deleteTodoBtn.addEventListener("click", () => { 
+                    const todoIndex = proj.getTodos().indexOf(todo);
                     if (todoIndex > -1) {
-                        targetProject.getTodos().splice(todoIndex, 1);
+                        proj.getTodos().splice(todoIndex, 1);
                         DOMmanipulation();
                     }
                 })
 
-                todoDiv.appendChild(deleteBtn);
+                todoDiv.appendChild(deleteTodoBtn);
 
                 projContent.appendChild(todoDiv);
             });
@@ -264,9 +254,21 @@ function ScreenController() {
                 }
             });
 
+            //Delete project logic
+            const deleteProjBtn = document.createElement("button");
+            deleteProjBtn.textContent = "Delete Project";
+            deleteProjBtn.classList.add("delete-project-btn");
+            deleteProjBtn.addEventListener("click", () => {
+                const projIndex = projectsList.indexOf(proj);
+                if (projIndex > -1) {
+                    projectsList.splice(projIndex, 1);
+                    DOMmanipulation();
+                }
+            });
             
             projDiv.appendChild(projContent);
             projDiv.appendChild(addTodoBtn);
+            projDiv.appendChild(deleteProjBtn);
             pageDiv.appendChild(projDiv);
         });
     }
