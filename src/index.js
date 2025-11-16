@@ -1,10 +1,7 @@
 import './style.css';
 import { format } from 'date-fns';
 
-
 format(new Date(1, 11, 2014), "dd-MM-yyyy"); //=> "1-11-2014"
-
-
 
 //factory function of a note
 const todoNoteFun = function(title = "title", description, dueDate, priority) {
@@ -67,8 +64,6 @@ const todoNoteFun = function(title = "title", description, dueDate, priority) {
     return todo;
 };
 
-
-
 //factory function of a project
 function projectFun(projName = "project name") {
     const todos = [];
@@ -86,10 +81,12 @@ function projectFun(projName = "project name") {
     return {project, getTodos, attachTodo};
 }
 
+//Rendering functions
 function renderTodoContent(todo, todoContent) {
     //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
     const todoHTML = todo.getKeys()
-        .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
+        .filter(key => key !== "title" && key !== "priority")//We filter out the title key to avoid displaying it twice
+        .filter(key => todo.getDetail(key) !== "Empty" && todo.getDetail(key) !== "No due date") //filter out empty details
         .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
         .join(""); //convert the array to a string
         
@@ -169,6 +166,7 @@ function ScreenController() {
                 //Initial rendering of todo details
                 renderTodoContent(todo, todoContent);
                 todoDiv.appendChild(todoContent);
+                todoDiv.classList.add(`${todo.todoCard.priority.toLowerCase()}-priority`); //Adding priority class to todo card for styling
 
                 //Rendering of todo form inside dialog
                 renderTodoForm(todo, todoFormDialog);
@@ -210,8 +208,7 @@ function ScreenController() {
                     todoFormDialog.close();
                 });
 
-
-
+                //Delete todo button logic
                 const deleteTodoBtn = document.createElement("button");
                 deleteTodoBtn.textContent = "Delete todo";
                 deleteTodoBtn.classList.add("delete-todo-btn");
@@ -229,7 +226,7 @@ function ScreenController() {
                 projContent.appendChild(todoDiv);
             });
             
-            // Add todos logic
+            // Add todos button logic
             const addTodoBtn = document.createElement("button");
             addTodoBtn.textContent = "Add Todo";
             addTodoBtn.classList.add("add-todo-btn");
@@ -254,7 +251,7 @@ function ScreenController() {
                 }
             });
 
-            //Delete project logic
+            //Delete project button logic
             const deleteProjBtn = document.createElement("button");
             deleteProjBtn.textContent = "Delete Project";
             deleteProjBtn.classList.add("delete-project-btn");
@@ -290,7 +287,7 @@ function ScreenController() {
     DOMmanipulation();
 }
 
-// //Only one app controller is needed
+//Only one app controller is needed
 const app = ScreenController();
 
 window.app = app; //For debugging purposes as bundling puts verything in its own scope and won't be accessible from the console otherwise

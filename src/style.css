@@ -63,3 +63,23 @@ button {
 .delete-todo-btn {
     margin: 0px 10px 5px 10px;
 }
+
+.low-priority {
+    background-color: #b1efc0; /* Light green */
+}
+.medium-priority {
+    background-color: #e6bf84; /* Light yellow */
+}
+.high-priority {
+    background-color: #ea505096; /* Light red */
+}
+
+.low-priority button {
+    background-color: #86e89f; /* Darker green */
+}
+.medium-priority button {
+    background-color: #e89f55; /* Darker yellow */
+}
+.high-priority button {
+    background-color: #e8111196; /* Darker red */
+}
