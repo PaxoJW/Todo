@@ -86,14 +86,14 @@ function projectFun(projName = "project name") {
     return {project, getTodos, attachTodo};
 }
 
-function renderTodoDiv(todo, todoDiv) {
+function renderTodoContent(todo, todoContent) {
     //forEach works on arrays, so we use Object.keys to get an array of keys from the todoCard object
     const todoHTML = todo.getKeys()
         .filter(key => key !== "title")  //We filter out the title key to avoid displaying it twice
         .map(key => `<li>${key}: ${todo.getDetail(key)}</li>`)
         .join(""); //convert the array to a string
         
-    todoDiv.innerHTML = `<h3 class = "todo-title">${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
+    todoContent.innerHTML = `<h3 class = "todo-title">${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
 }
 
 function renderTodoForm(todo, todoFormDialog) {
@@ -154,24 +154,28 @@ function ScreenController() {
             projTitle.textContent = proj.project.projName;
             projDiv.appendChild(projTitle);
             projContent.setAttribute("class", "project-content");
-
+            console.log(proj);
             //Display todos of the project
             proj.getTodos().forEach((todo) => {
                 const todoDiv = document.createElement("div");
                 todoDiv.setAttribute("class", "todo-card");
+                const todoContent = document.createElement("div");
+                todoContent.setAttribute("class", "todo-content");
                 const todoFormDialog = document.createElement("dialog");
                 todoFormDialog.setAttribute("closedby", "any");
 
                 document.body.appendChild(todoFormDialog); //Dialogs need to be in the body
 
                 //Initial rendering of todo details
-                renderTodoDiv(todo, todoDiv);
+                renderTodoContent(todo, todoContent);
+                todoDiv.appendChild(todoContent);
 
                 //Rendering of todo form inside dialog
                 renderTodoForm(todo, todoFormDialog);
+                
 
                 //Event listener to open dialog on click
-                todoDiv.addEventListener("click", () => {
+                todoContent.addEventListener("click", () => {
                     //FInd opened dialogs and close them
                     const openedDialogs = document.querySelectorAll('dialog[open]');
                     openedDialogs.forEach(d => d.close());
@@ -196,13 +200,41 @@ function ScreenController() {
 
                     for (const [key, value] of formData.entries()) {
                         todo.addDetail(key, value);
+                        console.log(key, value);
                     }
-
+                    
+                    console.log("Todo updated:", todo);
                     //Re-render the todo details
-                    renderTodoDiv(todo, todoDiv);
+                    renderTodoContent(todo, todoContent);
 
                     todoFormDialog.close();
                 });
+
+
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "Delete todo";
+                deleteBtn.classList.add("delete-todo-btn");
+
+                deleteBtn.addEventListener("click", (e) => {
+                    console.log("Delete button clicked");
+                    // e.stopPropagation(); //To prevent the dialog from opening
+                    const projectCard = e.target.closest(".project-card");
+                    const projectID = projectCard.dataset.projectID;
+                    const targetProject = projectsList.find(p => p.project.id === projectID);
+                    console.log(projectCard, projectID, targetProject, projectsList);
+                    if (!targetProject) {
+                        return;
+                    }
+                    const todoIndex = targetProject.getTodos().indexOf(todo);
+                    
+                    if (todoIndex > -1) {
+                        targetProject.getTodos().splice(todoIndex, 1);
+                        DOMmanipulation();
+                    }
+                })
+
+                todoDiv.appendChild(deleteBtn);
 
                 projContent.appendChild(todoDiv);
             });
@@ -232,8 +264,9 @@ function ScreenController() {
                 }
             });
 
-            projContent.appendChild(addTodoBtn);
+            
             projDiv.appendChild(projContent);
+            projDiv.appendChild(addTodoBtn);
             pageDiv.appendChild(projDiv);
         });
     }
