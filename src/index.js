@@ -93,22 +93,44 @@ function renderTodoContent(todo, todoContent) {
     todoContent.innerHTML = `<h3 class = "todo-title">${todo.todoCard.title}</h3><ul class = "details">${todoHTML}</ul>`;
 }
 
-function renderTodoForm(todo, todoFormDialog) {
-    const todoForm = todo.getKeys().map(key => {
+function renderEditTodoForm(todo, editDialog) {
+    const editTodoForm = todo.getKeys().map(key => {
         return `
             <label for="${key}">${key}:</label>
             <input type="text" id="${key}" name="${key}" value="${todo.getDetail(key)}"><br>`;
     }).join("");
     
-    todoFormDialog.innerHTML = `<form>
+    editDialog.innerHTML = `
+    <form>
         <h3>Edit Todo:</h3>
-        ${todoForm}
+        ${editTodoForm}
         <menu>
             <button type="button" id="cancel-btn">Cancel</button>
             <button type = "submit">Confirm</button>
         </menu>
     </form>`;
 }
+
+function renderCreateTodoForm(todoCreationDialog) {
+    //Similar to edit form but without pre-filled values
+    todoCreationDialog.innerHTML = `
+    <form>
+        <h3>Create Todo:</h3>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title"><br>
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description"><br>
+        <label for="dueDate">Due Date:</label>
+        <input type="text" id="dueDate" name="dueDate"><br>
+        <label for="priority">Priority:</label>
+        <input type="text" id="priority" name="priority"><br>
+        <menu>
+            <button type = "submit">Create</button>
+        </menu>
+    </form>`;
+}
+
+
 
 //controller module to manage the screen
 function ScreenController() {
@@ -152,16 +174,18 @@ function ScreenController() {
             projDiv.appendChild(projTitle);
             projContent.setAttribute("class", "project-content");
             console.log(proj);
+
             //Display todos of the project
             proj.getTodos().forEach((todo) => {
                 const todoDiv = document.createElement("div");
                 todoDiv.setAttribute("class", "todo-card");
                 const todoContent = document.createElement("div");
                 todoContent.setAttribute("class", "todo-content");
-                const todoFormDialog = document.createElement("dialog");
-                todoFormDialog.setAttribute("closedby", "any");
-
-                document.body.appendChild(todoFormDialog); //Dialogs need to be in the body
+                const editTodoDialog = document.createElement("dialog");
+                editTodoDialog.setAttribute("class", "edit-todo-form");
+                editTodoDialog.setAttribute("closedby", "any");
+                
+                document.body.appendChild(editTodoDialog); //Dialogs need to be in the body
 
                 //Initial rendering of todo details
                 renderTodoContent(todo, todoContent);
@@ -169,7 +193,7 @@ function ScreenController() {
                 todoDiv.classList.add(`${todo.todoCard.priority.toLowerCase()}-priority`); //Adding priority class to todo card for styling
 
                 //Rendering of todo form inside dialog
-                renderTodoForm(todo, todoFormDialog);
+                renderEditTodoForm(todo, editTodoDialog);
                 
 
                 //Event listener to open dialog on click
@@ -178,23 +202,23 @@ function ScreenController() {
                     const openedDialogs = document.querySelectorAll('dialog[open]');
                     openedDialogs.forEach(d => d.close());
                     
-                    todoFormDialog.show();
+                    editTodoDialog.show();
                 });
                 
                 //Cancel button logic
-                todoFormDialog.querySelector("#cancel-btn").addEventListener("click", () => {
+                editTodoDialog.querySelector("#cancel-btn").addEventListener("click", () => {
                     todo.getKeys().forEach((key) => {
-                        todoFormDialog.querySelector(`input[name="${key}"]`).value = todo.getDetail(key);
+                        editTodoDialog.querySelector(`input[name="${key}"]`).value = todo.getDetail(key);
                     });
                     
-                    todoFormDialog.close();
+                    editTodoDialog.close();
                 });
 
                 //Form submission logic
-                const form = todoFormDialog.querySelector("form");
-                form.addEventListener("submit", (e) => {
+                const editTodoForm = editTodoDialog.querySelector("form");
+                editTodoForm.addEventListener("submit", (e) => {
                     e.preventDefault();
-                    const formData = new FormData(form);
+                    const formData = new FormData(editTodoForm);
 
                     for (const [key, value] of formData.entries()) {
                         todo.addDetail(key, value);
@@ -204,8 +228,9 @@ function ScreenController() {
                     console.log("Todo updated:", todo);
                     //Re-render the todo details
                     renderTodoContent(todo, todoContent);
-
-                    todoFormDialog.close();
+                    console.log(typeof editTodoDialog.close);
+                    console.log(typeof editTodoDialog);
+                    editTodoDialog.close();
                 });
 
                 //Delete todo button logic
@@ -226,21 +251,62 @@ function ScreenController() {
                 projContent.appendChild(todoDiv);
             });
             
+
+            const newTodoDialog = document.createElement("dialog");
+            newTodoDialog.setAttribute("class", "new-todo-form");
+            newTodoDialog.setAttribute("closedby", "any");
+            document.body.appendChild(newTodoDialog); //Forms need to be in the body
+
+            //create the form in the dialog before any interaction
+            renderCreateTodoForm(newTodoDialog);
+
             // Add todos button logic
             const addTodoBtn = document.createElement("button");
             addTodoBtn.textContent = "Add Todo";
             addTodoBtn.classList.add("add-todo-btn");
-            addTodoBtn.addEventListener("click", (e) => {
-                const title = prompt("Enter todo title:");
-                const description = prompt("Enter todo description:");
-                const dueDate = prompt("Enter due date (dd-mm-yyyy):");
-                const priority = prompt("Enter priority (Low, Medium, High):");
+            addTodoBtn.addEventListener("click", () => {
+                console.log("Add todo button clicked");
+                //open new dialog
+                newTodoDialog.show();
+
+                // const title = prompt("Enter todo title:");
+                // const description = prompt("Enter todo description:");
+                // const dueDate = prompt("Enter due date (dd-mm-yyyy):");
+                // const priority = prompt("Enter priority (Low, Medium, High):");
                 
-                //Here we can get the unique ID of the project to assign the todo to
-                //First we get the closest project div in the ierarchy to the button clicked
-                const projectCard = e.target.closest(".project-card"); 
-                const projectID = projectCard.dataset.projectID; //we get the project id from the div
-                const targetProject = projectsList.find(p => p.project.id === projectID); //we look for the correspoding project in the list
+                // //Here we can get the unique ID of the project to assign the todo to
+                // //First we get the closest project div in the ierarchy to the button clicked
+                // const projectCard = e.target.closest(".project-card"); 
+                // const projectID = projectCard.dataset.projectID; //we get the project id from the div
+                // const targetProject = projectsList.find(p => p.project.id === projectID); //we look for the correspoding project in the list
+                // if (!targetProject) {
+                //     return;
+                // }
+                // if (title) {
+                //     addTodo(title, description, dueDate, priority, targetProject); //Assigning to the target project
+                // } else {
+                //     alert("Todo must have a title!");
+                // }
+            });
+
+            //New todo form submission logic
+            const newTodoForm = newTodoDialog.querySelector("form");
+            console.log(newTodoDialog);
+            newTodoForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+
+                const newTodoData = new FormData(newTodoForm);
+
+                const title = newTodoData.get("title");
+                const description = newTodoData.get("description");
+                const dueDate = newTodoData.get("due-date");
+                const priority = newTodoData.get("priority");
+
+                const projectCard = addTodoBtn.closest(".project-card");
+                
+                const projectID = projectCard.dataset.projectID;
+                const targetProject = projectsList.find(p => p.project.id === projectID);
+                console.log(targetProject);
                 if (!targetProject) {
                     return;
                 }
@@ -249,7 +315,14 @@ function ScreenController() {
                 } else {
                     alert("Todo must have a title!");
                 }
-            });
+
+                console.log(newTodoForm)
+                console.log(typeof newTodoForm)
+                console.log(typeof newTodoForm.close)
+                newTodoForm.reset();
+                //close the dialog
+                newTodoDialog.close();
+            })
 
             //Delete project button logic
             const deleteProjBtn = document.createElement("button");
@@ -264,7 +337,7 @@ function ScreenController() {
             });
             
             projDiv.appendChild(projContent);
-            projDiv.appendChild(addTodoBtn);
+            projContent.appendChild(addTodoBtn);
             projDiv.appendChild(deleteProjBtn);
             pageDiv.appendChild(projDiv);
         });
