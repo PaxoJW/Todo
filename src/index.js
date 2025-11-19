@@ -3,6 +3,21 @@ import { format } from 'date-fns';
 
 format(new Date(1, 11, 2014), "dd-MM-yyyy"); //=> "1-11-2014"
 
+
+function storageController() {
+    const saveProjects = (projectsList) => {
+        localStorage.setItem("projects", JSON.stringify(projectsList));
+    };
+
+    const loadProjects = () => {
+        const data = localStorage.getItem("projects");
+        if (!data) return null;
+        return JSON.parse(data);
+    };
+
+    return {saveProjects, loadProjects};
+}
+
 //factory function of a note
 const todoNoteFun = function(title = "title", description, dueDate, priority) {
     
@@ -134,15 +149,36 @@ function renderCreateTodoForm(todoCreationDialog) {
 
 //controller module to manage the screen
 function ScreenController() {
+    const storage = storageController();
+
     const pageDiv = document.getElementById("content");
     const projectsList = []; //List of all projects
 
-    //Create a default project and todo for demonstration
-    const defaultProject = projectFun("Default Project");
-    const defaultTodo = todoNoteFun("Default Todo", "Sample description", "2024-05-23", "Low");
+    const storedProjects = storage.loadProjects();
 
-    defaultProject.attachTodo(defaultTodo);
-    projectsList.push(defaultProject);
+    if (storedProjects) {
+        // JSON stripped away the methods, let's rebuild them
+        projectsList = storedProjects.map(p => {
+            const proj = projectFun(p.project.projName);
+            p.project.todos.forEach(t => {
+                const todo = todoNoteFun(
+                    t.todo.title,
+                    t.todo.description,
+                    t.todo.dueDate,
+                    t.todo.priority
+                );
+                proj.attachTodo(todo);
+            });
+            return proj;
+        });
+    } else {
+        //No stored data --> Create a default project and todo for demonstration
+        const defaultProject = projectFun("Default Project");
+        projectsList.push(defaultProject);
+        const defaultTodo = todoNoteFun("Default Todo", "Sample description", "2024-05-23", "Low");
+        defaultProject.attachTodo(defaultTodo);
+    }
+    
 
     const DOMmanipulation = () => {
         //Clear the page
@@ -228,6 +264,7 @@ function ScreenController() {
                     console.log("Todo updated:", todo);
                     //Re-render the todo details
                     renderTodoContent(todo, todoContent);
+                    storage.saveProjects(projectsList);
                     console.log(typeof editTodoDialog.close);
                     console.log(typeof editTodoDialog);
                     editTodoDialog.close();
@@ -242,6 +279,7 @@ function ScreenController() {
                     const todoIndex = proj.getTodos().indexOf(todo);
                     if (todoIndex > -1) {
                         proj.getTodos().splice(todoIndex, 1);
+                        storage.saveProjects(projectsList);
                         DOMmanipulation();
                     }
                 })
@@ -332,6 +370,7 @@ function ScreenController() {
                 const projIndex = projectsList.indexOf(proj);
                 if (projIndex > -1) {
                     projectsList.splice(projIndex, 1);
+                    storage.saveProjects(projectsList);
                     DOMmanipulation();
                 }
             });
@@ -347,6 +386,7 @@ function ScreenController() {
     function addProject(projName) {
         const newProject = projectFun(projName);
         projectsList.push(newProject);
+        storage.saveProjects(projectsList);
         DOMmanipulation();
     }
 
@@ -354,6 +394,7 @@ function ScreenController() {
         const newTodo = todoNoteFun(title, description, dueDate, priority);
         // we assign the todo to the project here
         newTodo.assignProject(project);
+        storage.saveProjects(projectsList);
         DOMmanipulation();
     }
 
