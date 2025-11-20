@@ -24,11 +24,11 @@ const todoNoteFun = function(title = "title", description, dueDate, priority) {
     //Format only if inout is a valid ISO-like date
     if (dueDate && !isNaN(new Date(dueDate))) {
         //Store raw date
-        const dueDate = new Date(dueDate).toISOString();
+        dueDate = new Date(dueDate).toISOString();
     } else {
         dueDate = "No due date";
     }
-
+    
     const todoCard = {title, description, dueDate, priority};
     
     //Assign empty value to undefined values
@@ -167,8 +167,8 @@ function ScreenController() {
     const storage = storageController();
 
     function saveAll() {
-    const rawProjects = projectsList.map(p => p.toJSON());
-    storage.saveProjects(rawProjects);
+        const rawProjects = projectsList.map(p => p.toJSON());
+        storage.saveProjects(rawProjects);
     }
 
     const pageDiv = document.getElementById("content");
@@ -189,6 +189,7 @@ function ScreenController() {
                     t.priority
                 );
                 proj.attachTodo(rebTodo);
+                console.log(rebTodo);
             });
             return proj;
         });
@@ -281,13 +282,12 @@ function ScreenController() {
                         todo.addDetail(key, value);
                         console.log(key, value);
                     }
-                    
+                    console.log("After opening the edit:");
                     console.log("Todo updated:", todo);
                     //Re-render the todo details
-                    renderTodoContent(todo, todoContent);
+                    DOMmanipulation();
                     saveAll();
-                    console.log(typeof editTodoDialog.close);
-                    console.log(typeof editTodoDialog);
+                    console.log("Right before closing the edit dialof after submitting:")
                     editTodoDialog.close();
                 });
 
@@ -375,12 +375,10 @@ function ScreenController() {
                     alert("Todo must have a title!");
                 }
 
-                console.log(newTodoForm)
-                console.log(typeof newTodoForm)
-                console.log(typeof newTodoForm.close)
                 newTodoForm.reset();
                 //close the dialog
                 newTodoDialog.close();
+                
             })
 
             //Delete project button logic
