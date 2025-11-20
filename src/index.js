@@ -21,10 +21,10 @@ function storageController() {
 //factory function of a note
 const todoNoteFun = function(title = "title", description, dueDate, priority) {
     
-    //date manipulation can be done here
-    if (dueDate) {
-        const parsedDate = new Date(dueDate);
-        dueDate = format(parsedDate, "dd-MM-yyyy");
+    //Format only if inout is a valid ISO-like date
+    if (dueDate && !isNaN(new Date(dueDate))) {
+        //Store raw date
+        const dueDate = new Date(dueDate).toISOString();
     } else {
         dueDate = "No due date";
     }
@@ -49,6 +49,9 @@ const todoNoteFun = function(title = "title", description, dueDate, priority) {
     }
 
     const getDetail = (key) => {
+        // if (key === "dueDate" && todoCard.dueDate) {
+        //     return format(new Date(todoCard.dueDate), "dd-MM-yyyy");
+        // }
         if (!todoCard[key]) {
             todoCard[key] = "unassigned";
             alert(`Key: ${key} does not exist on todoCard`);
@@ -93,8 +96,20 @@ function projectFun(projName = "project name") {
         todos.push(todoCard);
     }
     
-    return {project, getTodos, attachTodo};
+    const toJSON = () => ({
+        project:{
+            projName: projName,
+            todos: todos.map(t => t.todoCard),
+            id: projectID
+        }
+    })
+
+    return {project, getTodos, attachTodo, toJSON};
 }
+
+
+
+
 
 //Rendering functions
 function renderTodoContent(todo, todoContent) {
@@ -151,8 +166,13 @@ function renderCreateTodoForm(todoCreationDialog) {
 function ScreenController() {
     const storage = storageController();
 
+    function saveAll() {
+    const rawProjects = projectsList.map(p => p.toJSON());
+    storage.saveProjects(rawProjects);
+    }
+
     const pageDiv = document.getElementById("content");
-    const projectsList = []; //List of all projects
+    let projectsList = []; //List of all projects
 
     const storedProjects = storage.loadProjects();
 
@@ -161,13 +181,14 @@ function ScreenController() {
         projectsList = storedProjects.map(p => {
             const proj = projectFun(p.project.projName);
             p.project.todos.forEach(t => {
-                const todo = todoNoteFun(
-                    t.todo.title,
-                    t.todo.description,
-                    t.todo.dueDate,
-                    t.todo.priority
+                console.log(t);
+                const rebTodo = todoNoteFun(
+                    t.title,
+                    t.description,
+                    t.dueDate,
+                    t.priority
                 );
-                proj.attachTodo(todo);
+                proj.attachTodo(rebTodo);
             });
             return proj;
         });
@@ -264,7 +285,7 @@ function ScreenController() {
                     console.log("Todo updated:", todo);
                     //Re-render the todo details
                     renderTodoContent(todo, todoContent);
-                    storage.saveProjects(projectsList);
+                    saveAll();
                     console.log(typeof editTodoDialog.close);
                     console.log(typeof editTodoDialog);
                     editTodoDialog.close();
@@ -279,7 +300,7 @@ function ScreenController() {
                     const todoIndex = proj.getTodos().indexOf(todo);
                     if (todoIndex > -1) {
                         proj.getTodos().splice(todoIndex, 1);
-                        storage.saveProjects(projectsList);
+                        saveAll();
                         DOMmanipulation();
                     }
                 })
@@ -370,7 +391,7 @@ function ScreenController() {
                 const projIndex = projectsList.indexOf(proj);
                 if (projIndex > -1) {
                     projectsList.splice(projIndex, 1);
-                    storage.saveProjects(projectsList);
+                    saveAll();
                     DOMmanipulation();
                 }
             });
@@ -386,7 +407,7 @@ function ScreenController() {
     function addProject(projName) {
         const newProject = projectFun(projName);
         projectsList.push(newProject);
-        storage.saveProjects(projectsList);
+        saveAll();
         DOMmanipulation();
     }
 
@@ -394,7 +415,7 @@ function ScreenController() {
         const newTodo = todoNoteFun(title, description, dueDate, priority);
         // we assign the todo to the project here
         newTodo.assignProject(project);
-        storage.saveProjects(projectsList);
+        saveAll();
         DOMmanipulation();
     }
 
